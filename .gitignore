@@ -1,0 +1,3 @@
+*.db
+*.csv
+!data/taxi_trips_eda_sample_small.csv
