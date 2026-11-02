@@ -262,6 +262,17 @@ weekend_compare.columns = ['is_weekend', 'avg_fare', 'trip_count']
 print("\nWeekend vs Weekday Comparison:")
 print(weekend_compare)
 
+hourly_volume = sw_eda.groupby('pickup_hour').agg(
+    avg_fare=('fare_amount', 'mean'),
+    trip_count=('fare_amount', 'count')
+).reset_index()
+
+five_am_vol = hourly_volume[hourly_volume['pickup_hour'] == 5]['trip_count'].values[0]
+noon_vol = hourly_volume[hourly_volume['pickup_hour'] == 12]['trip_count'].values[0]
+
+print(f"Trips at 5 AM: {five_am_vol}")
+print(f"Trips at 12 PM: {noon_vol}")
+print(f"5 AM volume as a % of Noon volume: {(five_am_vol/noon_vol)*100:.1f}%")
 print("\nClean EDA complete.")
 
 print("\n---- 5 AM AIRPORT HYPOTHESIS TEST ----")
@@ -316,6 +327,13 @@ noon_share = sw[sw['pickup_hour'] == 12]['is_airport_trip'].mean() * 100
 print(f"\nAirport-related share at 5 AM: {five_am_share:.2f}%")
 print(f"Airport-related share at 12 PM: {noon_share:.2f}%")
 
+print("\n---- 5 AM WITHOUT JFK ----")
+five_am_no_jfk = sw[(sw['pickup_hour'] == 5) & (sw['RatecodeID'] != 2)]
+
+avg_fare_no_jfk = five_am_no_jfk['fare_amount'].mean()
+print(f"5 AM Average Fare (Without JFK): ${avg_fare_no_jfk:.2f}")
+print(f"5 AM Average Fare (With JFK): ${sw[sw['pickup_hour'] == 5]['fare_amount'].mean():.2f}")
+
 print("\n---- CORRELATION HEATMAP ----")
 
 # 1) Selecting numbers to test correlation
@@ -344,6 +362,14 @@ plt.show()
 plt.close()
 
 print("Correlation heatmap displayed.")
+
+print("\n---- SPEED VS FARE INVESTIGATION ----")
+corr_all = sw_eda[['fare_amount', 'avg_speed_mph']].corr().iloc[0,1]
+print(f"Correlation (All Trips): {corr_all:.2f}")
+
+short_trips = sw_eda[sw_eda['trip_distance'] < 3]
+corr_short = short_trips[['fare_amount', 'avg_speed_mph']].corr().iloc[0,1]
+print(f"Correlation (Short Trips < 3 miles): {corr_short:.2f}")
 
 print("\n---- STATISTICAL TESTING ----")
 
